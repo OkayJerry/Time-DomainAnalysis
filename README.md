@@ -1,6 +1,6 @@
-<h1 align="center">BO-GUI</h1>
+<h1 align="center">Time-Domain Analysis Software</h1>
 <p align="center">
-Software for Time-Domain Analysis
+Software for Time-Domain Analysis.
 </p>
 
 ![main](https://github.com/OkayJerry/Time-DomainAnalysis/assets/70593138/3d7f257f-4e57-4423-9b7f-027a7181ef45)
