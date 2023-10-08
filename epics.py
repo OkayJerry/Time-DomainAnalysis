@@ -1,9 +1,6 @@
 import numpy as np
 from datetime import datetime
 from scipy import signal
-from PyQt6.QtCore import QObject
-import pandas as pd
-from typing import List, Tuple
 
 def random_flat(sec=5, s0=10, s1=1, s2=10):
     t0 = datetime.now()
@@ -71,7 +68,6 @@ class PV(object):
             raise NameError("PV name does not found.")
         
         self.t = 1.0
-        self.history = []
             
     def random_walk(self, s0=10):
         v0 = np.random.randn()
@@ -79,49 +75,4 @@ class PV(object):
         return self.t
             
     def get(self):
-        val = self.func()
-        self.history.append(val)
-        return self.history
-    
-class PVDataContainer(QObject):
-    def __init__(self):
-        super().__init__()
-        
-        self.rw_kwargs = {}
-        self.ewm_kwargs = {}
-        
-        self.value_history = []
-        
-        self.og_enabled = True
-        self.rw_enabled = False
-        self.ewm_enabled = False
-        
-    def getValues(self):
-        return self.value_history
-        
-    def addValue(self, value: float):
-        self.value_history.append(value)
-        
-    def enableOG(self, b: bool):
-        self.og_enabled = b
-        
-    def enableRW(self, b: bool):
-        self.rw_enabled = b
-        
-    def enableEWM(self, b: bool):
-        self.ewm_enabled = b
-        
-    def isEnabled(self) -> Tuple[bool, bool, bool]:
-        return self.og_enabled, self.rw_enabled, self.ewm_enabled
-        
-    def setRWKwargs(self, **kwargs):
-        self.rw_kwargs = kwargs
-        
-    def setEWMKwargs(self, **kwargs):
-        self.ewm_kwargs = kwargs
-        
-    def calculateRW(self) -> List[float]:
-        return pd.Series(self.value_history).rolling(**self.rw_kwargs).agg("mean").tolist() if self.rw_enabled else []
-    
-    def calculateEWM(self) -> List[float]:
-        return pd.Series(self.value_history).ewm(**self.ewm_kwargs).agg("mean").tolist() if self.ewm_enabled else []
+        return self.func()

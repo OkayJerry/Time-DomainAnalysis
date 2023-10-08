@@ -1,17 +1,14 @@
 import sys
+
 from PyQt6.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QWidget, QVBoxLayout, QGroupBox, QSpinBox
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
-from components.DynamicCanvas import DynamicCanvas
-from epics import PV
-import time
-import threading
-from components.tools import ControlTree, PVEditor
-from components.PVengine import PVEngine
-from components.buttons import TogglePlayButton
-import pandas as pd
-from copy import deepcopy
-from pyqtgraph import mkPen
+
+from components.Canvas import DynamicCanvas
+from components.PVEditor import PVEditor
+from components.PVEditor import TogglePlayButton
+from components.Clock import Clock
+from components.Processor import PVProcessor
+# from components.MenuBar import MenuBar
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -22,13 +19,11 @@ class MainWindow(QMainWindow):
         self.initializeWidgets()
         self.connectWidgets()
         
-        self.run_sim = False
-        self.rolling_enabled = False
-        self.ewm_enabled = False
-        
-        self._times = []
+        # self.setMenuBar(MenuBar(self))
         
     def initializeWidgets(self):
+        print("Init called...")
+        
         # Time-Domain Group Box
         self.canvas = DynamicCanvas()
         
@@ -73,88 +68,31 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(QWidget())
         self.centralWidget().setLayout(main_layout)
         
-        self.engine = PVEngine(self.hz_spinbox)
-        
+        self.clock = Clock()
+        self.processor = PVProcessor(self.pv_editor.table, self.clock, self.canvas)
+                
     def connectWidgets(self):
         def togglePlay(play: bool):                   
             if play:
-                self.engine.start()
+                self.clock.updateInterval(self.hz_spinbox.value())
+                self.clock.start()
             else:
-                self.engine.stop()
+                self.clock.stop()
         
         self.toggle_play_button.toggled.connect(togglePlay)
-        self.engine.updateCanvas.connect(self.updateCanvasScript)
+        self.hz_spinbox.valueChanged.connect(self.clock.updateInterval)
+        self.clock.timeout.connect(lambda: self.processor.start() if not self.processor.isRunning() else None)
+        self.processor.plotRequest.connect(self.addOrUpdateCurve)
+        self.processor.requestCurveRemoval.connect(self.removeCurve)
         
-    def updateCanvasScript(self, time_step):
-        PEN_WIDTH = 4
-        
-        self._times.append(self._times[-1] + time_step if self._times else 0)
-        
-        for item in self.pv_editor.table.getItems():
-            if not item.isPVSet():
-                continue
-            
-            data = item.fetchData()
-            
-            pv_data = data["PV"].get()
-            times = self._times[-len(pv_data):]
-                
-            
-            kwargs = deepcopy(data["kwargs"])  # enables use of `del` and `pop()` without affecting the item's data directly
-            
-            original_kwargs = kwargs.get("original", {})
-            rw_kwargs = kwargs.get("rolling_window", {})
-            ewm_kwargs = kwargs.get("ewm", {})
-            aggregation_function = kwargs.get("aggregation_function", "mean")
-            
-            if original_kwargs.get("enabled", False):
-                curve = self.canvas.getCurve(data["name"])
-                
-                pen = mkPen(color=data["color"], width=PEN_WIDTH)
-                
-                if curve:
-                    self.canvas.updateCurve(data["name"], times, pv_data, pen, data["window_number"] - 1)
-                else:
-                    self.canvas.addCurve(data["name"], times, pv_data, pen, data["window_number"] - 1)
-            
-            elif self.canvas.isCurve(data["name"]):
-                self.canvas.removeCurve(data["name"])
-                    
-            if rw_kwargs.get("enabled", False):
-                del rw_kwargs["enabled"]
-                
-                rolling_average = pd.Series(pv_data).rolling(**rw_kwargs).agg(aggregation_function).tolist()
-                
-                label = data["name"] + " Rolling-Window"
-                curve = self.canvas.getCurve(label)
-                
-                pen = mkPen(color=data["color"], width=PEN_WIDTH, style=Qt.PenStyle.DashLine)
-                
-                if curve:
-                    self.canvas.updateCurve(label, times, rolling_average, pen, data["window_number"] - 1)
-                else:
-                    self.canvas.addCurve(label, times, rolling_average, pen, data["window_number"] - 1)
-                    
-            elif self.canvas.isCurve(data["name"] + " Rolling-Window"):
-                self.canvas.removeCurve(data["name"] + " Rolling-Window")
-                
-            if ewm_kwargs.get("enabled", False):
-                del ewm_kwargs["enabled"]
-                
-                ewm_average = pd.Series(pv_data).ewm(**ewm_kwargs).agg(aggregation_function).tolist()
-                
-                label = data["name"] + " Exponentially Weighted"
-                curve = self.canvas.getCurve(label)
-                
-                pen = mkPen(color=data["color"], width=PEN_WIDTH, style=Qt.PenStyle.DotLine)
-                
-                if curve:
-                    self.canvas.updateCurve(label, times, ewm_average, pen, data["window_number"] - 1)
-                else:
-                    self.canvas.addCurve(label, times, ewm_average, pen, data["window_number"] - 1)
-            
-            elif self.canvas.isCurve(data["name"] + " Exponentially Weighted"):
-                self.canvas.removeCurve(data["name"] + " Exponentially Weighted")
+    def addOrUpdateCurve(self, label, x, y, pen, subplot_index):  # Canvas must be updated from the main thread
+        if self.canvas.getCurve(label):
+            self.canvas.updateCurve(label, x, y, pen, subplot_index)
+        else:
+            self.canvas.addCurve(label, x, y, pen, subplot_index)
+  
+    def removeCurve(self, label: str):  # Canvas must be updated from the main thread
+        self.canvas.removeCurve(label)
                 
         
 if __name__ == "__main__":
