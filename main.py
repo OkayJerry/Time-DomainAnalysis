@@ -1,14 +1,14 @@
 import sys
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QWidget, QVBoxLayout, QGroupBox, QSpinBox
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread
 
 from components.Canvas import DynamicCanvas
 from components.PVEditor import PVEditor
 from components.PVEditor import TogglePlayButton
 from components.Clock import Clock
 from components.Processor import PVProcessor
-# from components.MenuBar import MenuBar
+from components.MenuBar import MenuBar
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -19,11 +19,9 @@ class MainWindow(QMainWindow):
         self.initializeWidgets()
         self.connectWidgets()
         
-        # self.setMenuBar(MenuBar(self))
+        self.setMenuBar(MenuBar(self))
         
-    def initializeWidgets(self):
-        print("Init called...")
-        
+    def initializeWidgets(self):        
         # Time-Domain Group Box
         self.canvas = DynamicCanvas()
         
@@ -79,11 +77,19 @@ class MainWindow(QMainWindow):
             else:
                 self.clock.stop()
         
+        def removeFlaggedItems():
+            self.clock.stop()
+            self.processor.wait()
+            self.pv_editor.table.removeFlaggedItems()
+            self.clock.start()
+        
         self.toggle_play_button.toggled.connect(togglePlay)
         self.hz_spinbox.valueChanged.connect(self.clock.updateInterval)
         self.clock.timeout.connect(lambda: self.processor.start() if not self.processor.isRunning() else None)
         self.processor.plotRequest.connect(self.addOrUpdateCurve)
         self.processor.requestCurveRemoval.connect(self.removeCurve)
+        self.processor.removeFlaggedItems.connect(removeFlaggedItems)
+        
         
     def addOrUpdateCurve(self, label, x, y, pen, subplot_index):  # Canvas must be updated from the main thread
         if self.canvas.getCurve(label):
@@ -93,6 +99,10 @@ class MainWindow(QMainWindow):
   
     def removeCurve(self, label: str):  # Canvas must be updated from the main thread
         self.canvas.removeCurve(label)
+        
+    def terminateProcesses(self):
+        self.clock.stop()
+        self.processor.wait()
                 
         
 if __name__ == "__main__":

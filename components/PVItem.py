@@ -55,6 +55,9 @@ class OptionalDoubleSpinBox(QWidget):
         
     def value(self):
         return self.spinbox.value() if self.radiobutton.isChecked() else None
+    
+    def setValue(self, value: float):
+        self.spinbox.setValue(value)
 
 class AdvancedSettingsDialog(QDialog):
     apply = pyqtSignal(dict)
@@ -98,6 +101,11 @@ class AdvancedSettingsDialog(QDialog):
         
     def setTitle(self, title: str):
         self.setWindowTitle(title)
+        
+    def loadSettings(self, settings: dict):
+        self.tree.loadData(settings.get("kwargs", {}))
+        self.window_number_spinbox.setValue(settings.get("window_number", 1))
+        self.palette_button.setColor(settings.get("color", ""))
 
 class PVTableItem(QWidget):
     def __init__(self):
@@ -106,22 +114,23 @@ class PVTableItem(QWidget):
         self.data = {}
         self.PV = None
         self.value_history = []
+        self.removal_flag = False
                 
         self.line_edit = QLineEdit("")
         self.line_edit.setPlaceholderText("Insert PV Name")
         self.line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.palette_button = PaletteButton("")
-        self.option_button = AdvancedSettingsButton(self)
+        self.settings_button = AdvancedSettingsButton(self)
         self.palette_button.setEnabled(False)
         self.palette_button.setVisible(False)
-        self.option_button.setVisible(False)
+        self.settings_button.setVisible(False)
         
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(self.line_edit)
         layout.addSpacing(9)
         layout.addWidget(self.palette_button)
-        layout.addWidget(self.option_button)
+        layout.addWidget(self.settings_button)
         self.setLayout(layout)
         
         self.line_edit.returnPressed.connect(self.on_return_pressed)
@@ -164,7 +173,7 @@ class PVTableItem(QWidget):
         
         self.palette_button.setColor(default_color)
         self.palette_button.setVisible(not blank_pv)
-        self.option_button.setVisible(not blank_pv)
+        self.settings_button.setVisible(not blank_pv)
         
     def getColor(self) -> str:
         return self.palette_button.color
@@ -181,13 +190,42 @@ class PVTableItem(QWidget):
         return self.data if self.PV else {}
     
     def isPVSet(self) -> bool:
-        return self.pv_set
+        return True if self.PV else False
     
     def getValues(self):
         return self.value_history
     
     def addValue(self):
         self.value_history.append(self.PV.get())
+        
+    def loadPVData(self, name: str, values: list):
+        color = self.parent().parent().getNextColor()
+        self.PV = PV(name)
+        self.line_edit.setText(name)
+        self.value_history = values   
+        self.data = {"label": name,
+                     "color": color,
+                     "kwargs": {"original": {'enabled': True},
+                     "rolling_window": {'enabled': False, 'window': 1, 'center': False, 'closed': 'right'},
+                     "ewm": {'enabled': False, 'com': 0.0, 'span': None, 'halflife': None, 'alpha': None, 'adjust': False}},
+                     "window_number": 1}
+        
+        self.palette_button.setColor(color)
+        self.palette_button.setVisible(True)
+        self.settings_button.setVisible(True)
+        
+    def loadPVParameters(self, params: dict):
+        
+        self.PV = PV(params["label"])
+        self.data = params
+        self.line_edit.setText(params["label"])
+        self.value_history = []
+        
+        self.palette_button.setColor(params["color"])
+        self.palette_button.setVisible(True)
+        self.settings_button.setVisible(True)
+        
+        self.settings_button.loadSettings(params)
         
 
 class AdvancedSettingsButton(QPushButton):
@@ -204,6 +242,9 @@ class AdvancedSettingsButton(QPushButton):
         self.settings_dialog.palette_button.setColor(self.item.getColor())
         self.settings_dialog.setTitle(f"{self.item.getPVName()}: Advanced Settings")
         self.settings_dialog.exec()
+        
+    def loadSettings(self, settings):
+        self.settings_dialog.loadSettings(settings)
 
 class ControlTree(QTreeWidget):    
     def __init__(self):
@@ -316,3 +357,27 @@ class ControlTree(QTreeWidget):
         
         return d
     
+    def loadData(self, data: dict):
+        og_kwargs = data.get("original", {})
+        rw_kwargs = data.get("rolling_window", {})
+        ewm_kwargs = data.get("ewm", {})
+        if og_kwargs:
+            self.og_checkbox.setChecked(True if og_kwargs.get("enabled", {}) else False)
+            
+        if rw_kwargs:
+            self.rw_checkbox.setChecked(True if rw_kwargs.get("enabled", {}) else False)
+            self.rw_window_spinbox.setValue(rw_kwargs.get("window", 1))
+            self.rw_center_checkbox.setChecked(rw_kwargs.get("center", False))
+            self.rw_closed_combobox.setCurrentText(rw_kwargs.get("closed", "Right").capitalize())
+            
+        if ewm_kwargs:
+            self.ewm_checkbox.setChecked(True if ewm_kwargs.get("enabled", {}) else False)
+            if ewm_kwargs.get("com", 0) is not None:
+                self.ewm_com_spinbox.setValue(ewm_kwargs.get("com", 0))
+            if ewm_kwargs.get("span", 1) is not None:
+                self.ewm_span_spinbox.setValue(ewm_kwargs.get("span", 1))
+            if ewm_kwargs.get("halflife", 0.25) is not None:
+                self.ewm_halflife_spinbox.setValue(ewm_kwargs.get("halflife", 0.25))
+            if ewm_kwargs.get("alpha", 0.1) is not None:
+                self.ewm_alpha_spinbox.setValue(ewm_kwargs.get("alpha", 0.1))
+            self.ewm_adjust_checkbox.setChecked(ewm_kwargs.get("adjust", False))

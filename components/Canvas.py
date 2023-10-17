@@ -41,7 +41,14 @@ class DynamicCanvas(pg.GraphicsLayoutWidget):
         return curve
         
     def isCurve(self, label: str) -> bool:
+        # for subplot in self.items():
+        #     if isinstance(subplot, pg.PlotItem):
+        #         # Iterate through the items (lines) in the subplot
+        #         for item in subplot.items:
+        #             if isinstance(item, pg.PlotDataItem) and item.name() == label:
+        #                 print(f"Found line with name '{label}' in a subplot.")
         return label in self._curves and label in self._curve_parents
+        # return False
             
     def addSubplot(self, subplot_index: int) -> pg.PlotItem:
         subplot = self.addPlot(row=subplot_index, col=self.COLUMN_INDEX, name=f"Subplot {subplot_index}",)
@@ -81,3 +88,7 @@ class DynamicCanvas(pg.GraphicsLayoutWidget):
             x, y = curve.getData()
             return x.tolist(), y.tolist()
         return False
+    
+    def empty(self):
+        for label in self._curves.keys():
+            self.removeCurve(label)
