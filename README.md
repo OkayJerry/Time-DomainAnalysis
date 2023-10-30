@@ -3,7 +3,7 @@
 Software for Time-Domain Analysis.
 </p>
 
-![main](https://github.com/OkayJerry/Time-DomainAnalysis/assets/70593138/3d7f257f-4e57-4423-9b7f-027a7181ef45)
+![main](https://github.com/OkayJerry/Time-DomainAnalysis/assets/70593138/7fae5a92-8ec8-4da7-8554-cbe1f4b077c9)
 
 ## How to Install
 ```
