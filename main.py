@@ -1,7 +1,7 @@
 import sys
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QWidget, QVBoxLayout, QGroupBox, QSpinBox
-from PyQt6.QtCore import Qt, QThread
+from PyQt6.QtCore import Qt
 
 from components.Canvas import DynamicCanvas
 from components.PVEditor import PVEditor
