@@ -2,6 +2,7 @@ import sys
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QWidget, QVBoxLayout, QGroupBox, QSpinBox
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
 
 from components.Canvas import DynamicCanvas
 from components.PVEditor import PVEditor
@@ -15,6 +16,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Time-Domain Analysis")
+        self.setWindowIcon(QIcon("images/frib.png"))
         
         self.initializeWidgets()
         self.connectWidgets()

@@ -65,7 +65,7 @@ class PV(object):
         elif name == 'dummy_pv_3':
             self.func = lambda: sinusoidal(sec=20, s0=10, s1=2, s2=1)
         else:
-            raise NameError("PV name does not found.")
+            raise NameError("PV name was not found.")
         
         self.t = 1.0
             

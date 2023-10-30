@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import (QWidget, QDoubleSpinBox, QComboBox, QRadioButton, QPushButton, 
                              QDialog, QSpinBox, QLabel, QColorDialog, QLineEdit, QMessageBox, 
-                             QTreeWidget, QTreeWidgetItem, QCheckBox, QHBoxLayout, QGridLayout)
+                             QTreeWidget, QTreeWidgetItem, QCheckBox, QHBoxLayout, QGridLayout, QSizePolicy)
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QIcon
 
 from epics import PV
 
@@ -32,6 +32,7 @@ class OptionalDoubleSpinBox(QWidget):
         
         self.radiobutton = QRadioButton()
         self.radiobutton.clicked.connect(lambda: self.disableOtherRadioButtons.emit())
+        self.radiobutton.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         
         self.spinbox = QDoubleSpinBox()
         self.spinbox.setValue(initial_value)
@@ -66,6 +67,8 @@ class AdvancedSettingsDialog(QDialog):
         super().__init__()
         
         self.setModal(True)
+        self.setFixedWidth(300)
+        self.setWindowIcon(QIcon("images/frib.png"))
 
         self.tree = ControlTree()
         self.window_number_spinbox = QSpinBox()

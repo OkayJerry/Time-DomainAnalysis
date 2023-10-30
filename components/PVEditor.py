@@ -145,7 +145,7 @@ class TogglePlayButton(QPushButton):
         self.clicked.connect(self.toggle)
         
     def toggle(self) -> None:
-        self.setText("▶" if self.is_playing else "⏹")
+        self.setText("▶" if self.is_playing else "■")
         self.is_playing = not self.is_playing
         self.toggled.emit(self.is_playing)
         
