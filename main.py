@@ -84,10 +84,19 @@ class MainWindow(QMainWindow):
             self.processor.wait()
             self.pv_editor.table.removeFlaggedItems()
             self.clock.start()
+                        
+        def removeItemWhilePaused():
+            if not self.toggle_play_button.is_playing:
+                self.clock.stop()
+                self.processor.wait()
+                self.processor.run(draw=False)  # bug: if item was added while the processor was stopped, it will retrieve the data from that item
+                self.processor.run()  # bug: if item was added while the processor was stopped, it will retrieve the data from that item
+                self.clock.stop()
         
         self.toggle_play_button.toggled.connect(togglePlay)
         self.hz_spinbox.valueChanged.connect(self.clock.updateInterval)
         self.clock.timeout.connect(lambda: self.processor.start() if not self.processor.isRunning() else None)
+        self.pv_editor.table.requestProcessRun.connect(removeItemWhilePaused)
         self.processor.plotRequest.connect(self.addOrUpdateCurve)
         self.processor.requestCurveRemoval.connect(self.removeCurve)
         self.processor.removeFlaggedItems.connect(removeFlaggedItems)

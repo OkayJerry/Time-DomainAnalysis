@@ -8,6 +8,7 @@ from time import sleep
 
 class PVTable(QTableWidget):
     removedPV = pyqtSignal(str)
+    requestProcessRun = pyqtSignal()
     
     def __init__(self):
         super().__init__(1, 1)
@@ -89,8 +90,8 @@ class PVTable(QTableWidget):
         def onDelete():
             row = self.rowAt(pos.y())
             self.cellWidget(row, 0).removal_flag = True
-            # self.removeRow(row)
-            # print(self.cellWidget(row, 0))
+            self.requestProcessRun.emit()
+
             
         contextMenu = QMenu(self)
 

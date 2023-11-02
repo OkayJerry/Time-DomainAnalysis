@@ -25,7 +25,7 @@ class PVProcessor(QThread):
         self.canvas = canvas
         self._times = []
     
-    def run(self):
+    def run(self, draw=True):
         self._times.append(self._times[-1] + self.clock.interval() / 1000.0 if self._times else 0)
         
         for item in self.table.getItems():
@@ -48,7 +48,7 @@ class PVProcessor(QThread):
             ewm_kwargs = kwargs.get("ewm", {})
             aggregation_function = kwargs.get("aggregation_function", "mean")
             
-            if og_kwargs.get("enabled", False) and not item.removal_flag:
+            if og_kwargs.get("enabled", False) and not item.removal_flag and draw:
                 del og_kwargs["enabled"]
                 
                 self.plotRequest.emit(data["label"], 
@@ -60,7 +60,7 @@ class PVProcessor(QThread):
             elif self.canvas.isCurve(data["label"]):
                 self.requestCurveRemoval.emit(data["label"])
             
-            if rw_kwargs.get("enabled", False) and not item.removal_flag:
+            if rw_kwargs.get("enabled", False) and not item.removal_flag and draw:
                 del rw_kwargs["enabled"]
                 
                 rolling_average = pd.Series(pv_data).rolling(**rw_kwargs).agg(aggregation_function).tolist()
@@ -73,7 +73,7 @@ class PVProcessor(QThread):
             elif self.canvas.isCurve(data["label"] + " Rolling-Window"):
                 self.requestCurveRemoval.emit(data["label"] + " Rolling-Window")
                 
-            if ewm_kwargs.get("enabled", False) and not item.removal_flag:
+            if ewm_kwargs.get("enabled", False) and not item.removal_flag and draw:
                 del ewm_kwargs["enabled"]
                 
                 ewm_average = pd.Series(pv_data).ewm(**ewm_kwargs).agg(aggregation_function).tolist()
