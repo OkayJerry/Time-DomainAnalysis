@@ -3,14 +3,12 @@ import json
 from PyQt6.QtWidgets import QMenuBar, QFileDialog, QMenu
 from PyQt6.QtGui import QAction
 
-from pandas import DataFrame
+from pandas import DataFrame, read_csv, read_json
 
 class MenuBar(QMenuBar):
     def __init__(self, main_window):
         super().__init__()
-        
-        # self.addMenu(FileMenu(main_window))
-        
+                 
         self.main = main_window
         
         new_action = QAction("New", self)
@@ -44,22 +42,26 @@ class MenuBar(QMenuBar):
         self.main.connectWidgets()
     
     def onOpenData(self):        
-        filename, _ = QFileDialog.getOpenFileName(self, "Open JSON File", "", "JSON Files (*.json);;All Files (*)")
+        filename, _ = QFileDialog.getOpenFileName(self, "Open Data File...", "", "All Files (*);;JSON Files (*.json);;CSV Files (*.csv)")
         
-        if filename and ".json" in filename:
+        if filename and (".json" in filename or ".csv" in filename):
             with open(filename, 'r') as file:
-                pv_data = json.load(file)
+                
+                if "json" in filename:
+                    pv_data = read_json(file).to_dict(orient="list")
+                else:
+                    pv_data = read_csv(file).to_dict(orient="list")
             
             self.onNew()
             self.main.pv_editor.table.setRowCount(0)
             
-            times = sorted(pv_data.pop("time (s)").values())
-            
+            times = pv_data.pop("time (s)") 
             self.main.processor.load(times)
+                
             self.main.pv_editor.table.loadPVData(pv_data)
             
     def onOpenParameters(self):
-        filename, _ = QFileDialog.getOpenFileName(self, "Open JSON File", "", "JSON Files (*.json);;All Files (*)")
+        filename, _ = QFileDialog.getOpenFileName(self, "Open JSON File...", "", "JSON Files (*.json);;All Files (*)")
         
         if filename and ".json" in filename:
             with open(filename, 'r') as file:
@@ -71,9 +73,9 @@ class MenuBar(QMenuBar):
             self.main.pv_editor.table.loadPVParameters(params)
     
     def onSaveData(self):
-        filename, _ = QFileDialog.getSaveFileName(self, "Save JSON File", "", "JSON Files (*.json);;All Files (*)")
+        filename, _ = QFileDialog.getSaveFileName(self, "Save Data As...", "", "All Files (*)JSON Files (*.json);;CSV Files (*.csv)")
         
-        if filename and ".json" in filename:
+        if filename and (".json" in filename or ".csv" in filename):
             times = self.main.processor.getTimes()
             items = self.main.pv_editor.table.getItems()
             
@@ -93,10 +95,13 @@ class MenuBar(QMenuBar):
                 
             d["time (s)"] = times
                 
-            DataFrame(d).to_json(filename)
+            if ".json" in filename:
+                DataFrame(d).to_json(filename, orient="records")
+            else:
+                DataFrame(d).to_csv(filename, index=False)
             
     def onSaveParameters(self):
-        filename, _ = QFileDialog.getSaveFileName(self, "Save JSON File", "", "JSON Files (*.json);;All Files (*)")
+        filename, _ = QFileDialog.getSaveFileName(self, "Save JSON File As...", "", "JSON Files (*.json);;All Files (*)")
     
         if filename and ".json" in filename:
             pv_params = []
@@ -113,39 +118,3 @@ class MenuBar(QMenuBar):
             # Write the JSON data to a file
             with open(filename, 'w') as file:
                 file.write(json_data)
-
-                        
-                
-            
-        
-
-# class FileMenu(QMenu):
-#     def __init__(self, main_window):
-#         super().__init__("File")
-        
-#         self.main = main_window
-        
-#         new_action = QAction("New", self)
-#         open_action = QAction("Open", self)
-#         save_action = QAction("Save", self)
-        
-#         new_action.triggered.connect(lambda: self.onNew())
-#         open_action.triggered.connect(lambda: self.onOpen)
-#         save_action.triggered.connect(lambda: self.onSave)
-        
-#         self.addAction(new_action)
-#         self.addAction(open_action)
-#         self.addAction(save_action)
-        
-#     def onNew(self):
-#         print("New started...")
-#         self.main.canvas.clear()
-#         self.main.initializeWidgets()
-#         self.main.connectWidgets()
-#         print("New finished...")
-    
-#     def onOpen(self):
-#         print("Open Triggered")
-    
-#     def onSave(self):
-#         print("Save Triggered")
