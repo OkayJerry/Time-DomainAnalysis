@@ -1,4 +1,5 @@
 from copy import deepcopy
+from time import time
 
 from PyQt6.QtCore import pyqtSignal, QThread, Qt
 from PyQt6.QtGui import QPen
@@ -26,7 +27,7 @@ class PVProcessor(QThread):
         self._times = []
     
     def run(self, draw=True):
-        self._times.append(self._times[-1] + self.clock.interval() / 1000.0 if self._times else 0)
+        self._times.append(float(time()))
         
         for item in self.table.getItems():
             if not item:

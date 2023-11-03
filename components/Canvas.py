@@ -53,6 +53,7 @@ class DynamicCanvas(pg.GraphicsLayoutWidget):
     def addSubplot(self, subplot_index: int) -> pg.PlotItem:
         subplot = self.addPlot(row=subplot_index, col=self.COLUMN_INDEX, name=f"Subplot {subplot_index}",)
         subplot.setMouseEnabled(x=False, y=False)
+        subplot.setAxisItems({"bottom": pg.DateAxisItem()})
         return subplot
         
     def moveCurve(self, label: str, subplot_index: int) -> None:
