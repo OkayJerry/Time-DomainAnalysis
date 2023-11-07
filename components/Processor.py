@@ -10,6 +10,7 @@ import pandas as pd
 from components.Canvas import DynamicCanvas
 from components.PVEditor import PVTable
 from components.Clock import Clock
+from components.AdaptiveAverage import adaptive_average
 
 PEN_WIDTH = 2
 
@@ -47,6 +48,7 @@ class PVProcessor(QThread):
             og_kwargs = kwargs.get("original", {})
             rw_kwargs = kwargs.get("rolling_window", {})
             ewm_kwargs = kwargs.get("ewm", {})
+            adaptive_avg_kwargs = kwargs.get("adaptive", {})
             aggregation_function = kwargs.get("aggregation_function", "mean")
             
             if og_kwargs.get("enabled", False) and not item.removal_flag and draw:
@@ -86,6 +88,20 @@ class PVProcessor(QThread):
                 
             elif self.canvas.isCurve(data["label"] + " Exponentially Weighted"):
                 self.requestCurveRemoval.emit(data["label"] + " Exponentially Weighted")
+                
+            if adaptive_avg_kwargs.get("enabled", False) and not item.removal_flag and draw:
+                del adaptive_avg_kwargs["enabled"]
+                
+                adaptive_avg = adaptive_average(pv_data, **adaptive_avg_kwargs).tolist()
+                if adaptive_avg:
+                    self.plotRequest.emit(data["label"] + " Adaptive Average",
+                                        times,
+                                        adaptive_avg,
+                                        mkPen(color=data["color"], width=PEN_WIDTH, style=Qt.PenStyle.DashDotLine),
+                                        data["window_number"] - 1)
+
+            elif self.canvas.isCurve(data["label"] + " Adaptive Average"):
+                self.requestCurveRemoval.emit(data["label"] + " Adaptive Average")
                 
         self.removeFlaggedItems.emit()
                 

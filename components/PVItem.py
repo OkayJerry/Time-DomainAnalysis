@@ -171,7 +171,8 @@ class PVTableItem(QWidget):
                         "color": default_color,
             "kwargs": {"original": {'enabled': True},
                         "rolling_window": {'enabled': False, 'window': 1, 'center': False, 'closed': 'right'},
-                        "ewm": {'enabled': False, 'com': 0.0, 'span': None, 'halflife': None, 'alpha': None, 'adjust': False}},
+                        "ewm": {'enabled': False, 'com': 0.0, 'span': None, 'halflife': None, 'alpha': None, 'adjust': False},
+                        "adaptive": {'enabled': False, 'phase_threshold': 0.5, 'n_avg': 8}},
             "window_number": 1}
         
         self.palette_button.setColor(default_color)
@@ -209,8 +210,9 @@ class PVTableItem(QWidget):
         self.data = {"label": name,
                      "color": color,
                      "kwargs": {"original": {'enabled': True},
-                     "rolling_window": {'enabled': False, 'window': 1, 'center': False, 'closed': 'right'},
-                     "ewm": {'enabled': False, 'com': 0.0, 'span': None, 'halflife': None, 'alpha': None, 'adjust': False}},
+                                "rolling_window": {'enabled': False, 'window': 1, 'center': False, 'closed': 'right'},
+                                "ewm": {'enabled': False, 'com': 0.0, 'span': None, 'halflife': None, 'alpha': None, 'adjust': False},
+                                "adaptive": {'enabled': False, 'phase_threshold': 0.5, 'n_avg': 8}},
                      "window_number": 1}
         
         self.palette_button.setColor(color)
@@ -322,6 +324,24 @@ class ControlTree(QTreeWidget):
         self.ewm_adjust_checkbox = QCheckBox()
         self.setItemWidget(ewm_adjust_item, 1, self.ewm_adjust_checkbox)
         
+        # Adaptive Average
+        adaptive_item = QTreeWidgetItem(self, ["Adaptive Average"])
+        adaptive_item.setFirstColumnSpanned(True)
+        adaptive_enable_item = QTreeWidgetItem(adaptive_item, ["Enable"])  # Enable
+        self.adaptive_checkbox = QCheckBox()
+        self.setItemWidget(adaptive_enable_item, 1, self.adaptive_checkbox)
+        adaptive_threshold_item = QTreeWidgetItem(adaptive_item, ["Phase Threshold"])  # Phase Threshold
+        self.adaptive_threshold_spinbox = QDoubleSpinBox()
+        self.adaptive_threshold_spinbox.setValue(0.5)
+        self.adaptive_threshold_spinbox.setSingleStep(0.25)
+        self.adaptive_threshold_spinbox.setToolTip("The phase change threshold to disable averaging.")
+        self.setItemWidget(adaptive_threshold_item, 1, self.adaptive_threshold_spinbox)
+        adaptive_threshold_item = QTreeWidgetItem(adaptive_item, ["Number of Points"])  # Num(points) to average
+        self.adaptive_pnts_spinbox = QSpinBox()
+        self.adaptive_pnts_spinbox.setMinimum(1)
+        self.adaptive_pnts_spinbox.setValue(8)
+        self.adaptive_pnts_spinbox.setToolTip("Number of points to consider in calculations.")
+        self.setItemWidget(adaptive_threshold_item, 1, self.adaptive_pnts_spinbox)
         
         def disableEWMRadioButtons(parent: OptionalDoubleSpinBox):
             other_radiobuttons = [self.ewm_com_spinbox.radiobutton, self.ewm_span_spinbox.radiobutton,
@@ -358,17 +378,23 @@ class ControlTree(QTreeWidget):
                     "alpha": self.ewm_alpha_spinbox.value(),
                     "adjust": self.ewm_adjust_checkbox.isChecked()}
         
+        d["adaptive"] = {"enabled": self.adaptive_checkbox.isChecked(),
+                         "phase_threshold": self.adaptive_threshold_spinbox.value(),
+                         "n_avg": self.adaptive_pnts_spinbox.value()}
+        
         return d
     
     def loadData(self, data: dict):
         og_kwargs = data.get("original", {})
         rw_kwargs = data.get("rolling_window", {})
         ewm_kwargs = data.get("ewm", {})
+        adaptive_kwargs = data.get("adaptive", {})
+        
         if og_kwargs:
-            self.og_checkbox.setChecked(True if og_kwargs.get("enabled", {}) else False)
+            self.og_checkbox.setChecked(og_kwargs.get("enabled", False))
             
         if rw_kwargs:
-            self.rw_checkbox.setChecked(True if rw_kwargs.get("enabled", {}) else False)
+            self.rw_checkbox.setChecked(rw_kwargs.get("enabled", False))
             self.rw_window_spinbox.setValue(rw_kwargs.get("window", 1))
             self.rw_center_checkbox.setChecked(rw_kwargs.get("center", False))
             self.rw_closed_combobox.setCurrentText(rw_kwargs.get("closed", "Right").capitalize())
@@ -384,3 +410,8 @@ class ControlTree(QTreeWidget):
             if ewm_kwargs.get("alpha", 0.1) is not None:
                 self.ewm_alpha_spinbox.setValue(ewm_kwargs.get("alpha", 0.1))
             self.ewm_adjust_checkbox.setChecked(ewm_kwargs.get("adjust", False))
+            
+        if adaptive_kwargs:
+            self.adaptive_checkbox.setChecked(adaptive_kwargs.get("enabled", False))
+            self.adaptive_threshold_spinbox.setValue(adaptive_kwargs.get("phase_threshold", 0.5))
+            self.adaptive_pnts_spinbox.setValue(adaptive_kwargs.get("n_avg", 8))
