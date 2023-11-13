@@ -72,14 +72,14 @@ class MainWindow(QMainWindow):
                 elif not draw_enabled and self.canvas.isCurve(item.params["name"]):
                     self.canvas.removeCurve(item.params["name"])
                 
-                # Canvas clean-up
-                names = [item.params["name"] for item in self.pv_editor]
-                for label in self.canvas.getCurveLabels():
-                    label = label.replace(RW_EXTENSION, "")
-                    label = label.replace(EWM_EXTENSION, "")
-                    label = label.replace(AA_EXTENSION, "")
-                    if label not in names:
-                        self.canvas.removeCurve(label)
+            # Canvas clean-up
+            names = [item.params["name"] for item in self.pv_editor]
+            for label in self.canvas.getCurveLabels():
+                label = label.replace(RW_EXTENSION, "")
+                label = label.replace(EWM_EXTENSION, "")
+                label = label.replace(AA_EXTENSION, "")
+                if label not in names:
+                    self.canvas.removeCurve(label)
                     
                 
             # Run the calculator
