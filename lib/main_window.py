@@ -16,9 +16,9 @@ WINDOW_ICON_FILE = os.path.join(os.getcwd(), "images", "frib.png")
 COLUMN_ZERO_WIDTH = 450
 PEN_WIDTH = 2
 
-RW_NAME = lambda name: name + " Rolling-Window"
-EWM_NAME = lambda name: name + " Exponentially Weighted"
-AA_NAME = lambda name: name + " Adaptive Average"
+RW_EXTENSION = " Rolling-Window"
+EWM_EXTENSION = " Exponentially Weighted"
+AA_EXTENSION = " Adaptive Average"
 
 
 class MainWindow(QMainWindow):
@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
         self.setMenuBar(MenuBar(self))
         
         self.canvas = Canvas()
-        self.pv_editor = PVEditor(self.canvas)
+        self.pv_editor = PVEditor(self)
         self.calculator = Calculator(self.pv_editor)
         self.clock = Clock()
         
@@ -72,12 +72,22 @@ class MainWindow(QMainWindow):
                 elif not draw_enabled and self.canvas.isCurve(item.params["name"]):
                     self.canvas.removeCurve(item.params["name"])
                 
+                # Canvas clean-up
+                names = [item.params["name"] for item in self.pv_editor]
+                for label in self.canvas.getCurveLabels():
+                    label = label.replace(RW_EXTENSION, "")
+                    label = label.replace(EWM_EXTENSION, "")
+                    label = label.replace(AA_EXTENSION, "")
+                    if label not in names:
+                        self.canvas.removeCurve(label)
+                    
+                
             # Run the calculator
             if not self.calculator.isRunning():
                 self.calculator.start()
                 
         def onCalculatedRW(item, result):
-            name = RW_NAME(item.params["name"])
+            name = item.params["name"] + RW_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DashLine)
             if self.canvas.isCurve(name):
                 self.canvas.updateCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
@@ -85,7 +95,7 @@ class MainWindow(QMainWindow):
                 self.canvas.addCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
         
         def onCalculatedEWM(item, result):
-            name = EWM_NAME(item.params["name"])
+            name = item.params["name"] + EWM_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DotLine)
             if self.canvas.isCurve(name):
                 self.canvas.updateCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
@@ -93,7 +103,7 @@ class MainWindow(QMainWindow):
                 self.canvas.addCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
         
         def onCalculatedAA(item, result):
-            name = AA_NAME(item.params["name"])
+            name = item.params["name"] + AA_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DashDotLine)
             if self.canvas.isCurve(name):
                 self.canvas.updateCurve(name, item.sample_times, result, pen, item.params["subplot_id"])

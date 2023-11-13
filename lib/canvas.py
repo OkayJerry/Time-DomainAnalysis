@@ -86,3 +86,6 @@ class Canvas(pg.GraphicsLayoutWidget):
         self.clear()
         self._curves.clear()
         self._curve_parents.clear()
+        
+    def getCurveLabels(self):
+        return list(self._curves.keys())

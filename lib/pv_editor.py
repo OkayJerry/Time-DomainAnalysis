@@ -23,10 +23,10 @@ AA_NAME = lambda name: name + " Adaptive Average"
 
 
 class PVEditor(QGroupBox):
-    def __init__(self, canvas):
+    def __init__(self, main_window):
         super().__init__(GROUPBOX_TEXT)
         
-        self.canvas = canvas
+        self.main_window = main_window
         
         self.add_button = QPushButton(ADD_BUTTON_TEXT)
         self.add_button.setFixedSize(ADD_BUTTON_SIZE[0], ADD_BUTTON_SIZE[1])
@@ -100,16 +100,16 @@ class PVEditor(QGroupBox):
         ewm_kwargs = kwargs.get("ewm", {})
         aa_kwargs = kwargs.get("adaptive", {})
         
-        if self.canvas.isCurve(params["name"]) and not og_kwargs.get("enabled", False):
-            self.canvas.removeCurve(params["name"])
+        clock_is_running = self.main_window.clock.timer.isActive()
+
+        if self.main_window.canvas.isCurve(params["name"]) and not og_kwargs.get("enabled", False):
+            self.main_window.canvas.removeCurve(params["name"])
             
-        if self.canvas.isCurve(RW_NAME(params["name"])) and not rw_kwargs.get("enabled", False):
-            self.canvas.removeCurve(params["name"])
+        if self.main_window.canvas.isCurve(RW_NAME(params["name"])) and not rw_kwargs.get("enabled", False):
+            self.main_window.canvas.removeCurve(params["name"])
             
-        if self.canvas.isCurve(EWM_NAME(params["name"])) and not ewm_kwargs.get("enabled", False):
-            self.canvas.removeCurve(EWM_NAME(params["name"]))
+        if self.main_window.canvas.isCurve(EWM_NAME(params["name"])) and not ewm_kwargs.get("enabled", False):
+            self.main_window.canvas.removeCurve(EWM_NAME(params["name"]))
             
-        if self.canvas.isCurve(AA_NAME(params["name"])) and not aa_kwargs.get("enabled", False):
-            self.canvas.removeCurve(AA_NAME(params["name"]))
-            
-    
+        if self.main_window.canvas.isCurve(AA_NAME(params["name"])) and not aa_kwargs.get("enabled", False):
+            self.main_window.canvas.removeCurve(AA_NAME(params["name"]))
