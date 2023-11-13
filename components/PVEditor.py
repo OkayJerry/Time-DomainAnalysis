@@ -74,10 +74,7 @@ class PVTable(QTableWidget):
         
     def loadPVData(self, pv_data: dict):
         for name, values in pv_data.items():
-            item = self.addItem()
-            
-            values = [values[f"{i}"] for i in range(len(values)) if values[f"{i}"] is not None]
-            
+            item = self.addItem()            
             item.loadPVData(name, values)
             
                 
