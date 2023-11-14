@@ -100,8 +100,6 @@ class PVEditor(QGroupBox):
         ewm_kwargs = kwargs.get("ewm", {})
         aa_kwargs = kwargs.get("adaptive", {})
         
-        clock_is_running = self.main_window.clock.timer.isActive()
-
         if self.main_window.canvas.isCurve(params["name"]) and not og_kwargs.get("enabled", False):
             self.main_window.canvas.removeCurve(params["name"])
             
