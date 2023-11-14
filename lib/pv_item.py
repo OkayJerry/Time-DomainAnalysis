@@ -23,7 +23,7 @@ DEFAULT_KWARGS = {"original": {'enabled': True},
                   "adaptive": {'enabled': False, 'phase_threshold': 0.5, 'n_avg': 8}}
 DIALOG_WIDTH = 350
 DIALOG_MODALITY = True
-DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "images", "frib.png")
+DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 
 class PVItem(QWidget):
     paramsChanged = pyqtSignal(dict)
@@ -152,7 +152,7 @@ class KwargTree(QTreeWidget):
         self.setStyleSheet("QTreeWidget::item { height: 25px; }")
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setColumnCount(2)
-        self.setColumnWidth(0, 140)
+        self.setColumnWidth(0, 175)
         self.setHeaderHidden(True)
         self.setUniformRowHeights(True)
 

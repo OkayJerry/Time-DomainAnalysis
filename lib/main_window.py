@@ -12,7 +12,7 @@ from lib.menu_bar import MenuBar
 from lib.pv_editor import PVEditor
 
 WINDOW_TITLE = "Time-Domain Analysis"
-WINDOW_ICON_FILE = os.path.join(os.getcwd(), "images", "frib.png")
+WINDOW_ICON_FILE = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 COLUMN_ZERO_WIDTH = 450
 PEN_WIDTH = 2
 
