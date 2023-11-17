@@ -143,7 +143,7 @@ class ParameterDialog(QDialog):
     def getParams(self) -> dict:
         kwargs = self.tree.getKwargs()
         color = self.palette_button.color
-        subplot_id = self.subplot_id_spinbox.value()
+        subplot_id = self.subplot_id_spinbox.value() - 1
         
         return {"kwargs": kwargs, "color": color, "subplot_id": subplot_id}
     
