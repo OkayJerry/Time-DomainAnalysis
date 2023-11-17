@@ -2,12 +2,14 @@ import os
 from time import time
 
 from PyQt6.QtWidgets import (QWidget, QDoubleSpinBox, QComboBox, QRadioButton, QPushButton, 
-                             QDialog, QSpinBox, QLabel, QColorDialog, QLineEdit, 
+                             QDialog, QSpinBox, QLabel, QColorDialog, QLineEdit, QMessageBox,
                              QTreeWidget, QTreeWidgetItem, QCheckBox, QHBoxLayout, QGridLayout, QSizePolicy)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon, QColor
 
 from epics import PV
+
+from lib.critical_dialog import CriticalDialog
 
 
 PV_LABEL_PLACEHOLDER = "Insert PV Name"
@@ -28,8 +30,10 @@ DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "resources", "images", "frib.pn
 class PVItem(QWidget):
     paramsChanged = pyqtSignal(dict)
     
-    def __init__(self):
+    def __init__(self, pv_editor):
         super().__init__()
+        
+        self.pv_editor = pv_editor
         
         self.pv = None
         self.params = {"name": None,
@@ -63,23 +67,35 @@ class PVItem(QWidget):
         self.setLayout(layout)
         
     def updateParams(self, params: dict = {}):
-        if params.get("name", ""):
-            self.pv = PV(params["name"])
-            self.line_edit.setText(params["name"])
-        
-        self.params.update(params)
-        
-        layout = self.layout()
-        if "name" in self.params.keys() and self.params["name"] is not None and self.layout().indexOf(self.color_square) == -1 and self.layout().indexOf(self.param_button) == -1:
-            layout.addSpacing(10)
-            layout.addWidget(self.color_square)
-            layout.addWidget(self.param_button)
+        try:
+            if params.get("name", "") and params["name"] != self.params["name"]:
+                # Verify the name isn't already taken
+                for item in self.pv_editor:
+                    if item is not self and item.params["name"] == params["name"]:
+                        self.line_edit.setFocus()
+                        self.line_edit.setText(self.params["name"] if self.params["name"] is not None else "")
+                        raise ValueError(f"'{params['name']}' already exists...")
+                
+                self.pv = PV(params["name"])
+                self.line_edit.setText(params["name"])
             
-        self.color_square.setColor(self.params["color"])
-        
-        self.param_dialog.updateParams(self.params)
-        
-        self.paramsChanged.emit(self.params)
+            self.params.update(params)
+            
+            name_was_set = "name" in self.params.keys() and self.params["name"] is not None
+            only_line_edit_showing = self.layout().indexOf(self.color_square) == -1 and self.layout().indexOf(self.param_button) == -1
+            if name_was_set and only_line_edit_showing:
+                self.layout().addSpacing(10)
+                self.layout().addWidget(self.color_square)
+                self.layout().addWidget(self.param_button)
+                
+            self.color_square.setColor(self.params["color"])
+            
+            self.param_dialog.updateParams(self.params)
+            
+            self.paramsChanged.emit(self.params)
+        except Exception as exc:
+            critical_dialog = CriticalDialog(str(exc), self)
+            critical_dialog.exec()
         
     def _showParamDialog(self):
         self.param_dialog.exec()

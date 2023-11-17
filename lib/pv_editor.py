@@ -80,7 +80,7 @@ class PVEditor(QGroupBox):
                 color = tab_color
                 break
             
-        item = PVItem()
+        item = PVItem(self)
         
         new_row = self.table.rowCount()
         self.table.insertRow(new_row)
