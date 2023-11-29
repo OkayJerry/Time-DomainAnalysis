@@ -11,6 +11,7 @@ from lib.clock import Clock
 from lib.menu_bar import MenuBar
 from lib.pv_editor import PVEditor
 
+# Global constants for the main window
 WINDOW_TITLE = "Time-Domain Analysis"
 WINDOW_ICON_FILE = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 COLUMN_ZERO_WIDTH = 450
@@ -22,19 +23,38 @@ AA_EXTENSION = " Adaptive Average"
 
 
 class MainWindow(QMainWindow):
+    """
+    Main window for Time-Domain Analysis application.
+
+    Attributes:
+        canvas (Canvas): Instance of the Canvas widget for displaying curves.
+        pv_editor (PVEditor): Instance of the PVEditor widget for managing PV items.
+        calculator (Calculator): Instance of the Calculator for performing calculations.
+        clock (Clock): Instance of the Clock widget for controlling updates.
+
+    Methods:
+        __init__: Initializes the MainWindow with layout and components.
+        reset: Resets the state of PV editor, canvas, and clock to default values.
+        _createMainThreadScripts: Creates main thread scripts for clock timeout and calculator signals.
+    """
     def __init__(self):
+        """
+        Initializes a new MainWindow instance.
+        """
         super().__init__()
 
+        # Set window properties
         self.setWindowTitle(WINDOW_TITLE)
         self.setWindowIcon(QIcon(WINDOW_ICON_FILE))
         self.setMenuBar(MenuBar(self))
         
+        # Create main components
         self.canvas = Canvas()
         self.pv_editor = PVEditor(self)
         self.calculator = Calculator(self.pv_editor)
         self.clock = Clock()
         
-        
+        # Set up the layout
         layout = QGridLayout()
         layout.addWidget(self.clock, 0, 0)
         layout.addWidget(self.pv_editor, 1, 0)
@@ -46,14 +66,29 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(QWidget())
         self.centralWidget().setLayout(layout)
         
+        # Create and connect main thread scripts
         self._createMainThreadScripts()
                 
     def reset(self):
+        """
+        Resets the state of PV editor, canvas, and clock to default values.
+        """
         self.pv_editor.reset()
         self.canvas.reset()
         self.clock.reset()
         
     def _createMainThreadScripts(self):
+        """
+        Creates main thread scripts for clock timeout and calculator signals.
+
+        This method defines functions for handling clock timeout and calculator signals, connecting them to the appropriate
+        slots. It ensures the generation, drawing, and cleanup of samples in the PV editor's canvas. Additionally, it manages
+        the updating or adding of curves on the canvas based on the draw settings of each PV item. The calculator signals
+        trigger the plotting of calculated rolling window (RW), exponentially weighted moving average (EWM), and adaptive
+        average (AA) curves.
+
+        The method establishes connections between the signals of the clock, calculator, and the corresponding functions.
+        """
         def onClockTimeout():
             # Generate new samples & draw (if enabled)
             for item in self.pv_editor:
@@ -87,6 +122,16 @@ class MainWindow(QMainWindow):
                 self.calculator.start()
                 
         def onCalculatedRW(item, result):
+            """
+            Callback function triggered on calculated rolling window (RW) signal from the calculator.
+
+            This function handles the calculated RW data and updates the canvas with the appropriate pen settings.
+
+            Args:
+                item (PVItem): The PVItem for which the RW is calculated.
+                result (List[float]): The calculated RW data.
+
+            """
             name = item.params["name"] + RW_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DashLine)
             if self.canvas.isCurve(name):
@@ -95,6 +140,16 @@ class MainWindow(QMainWindow):
                 self.canvas.addCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
         
         def onCalculatedEWM(item, result):
+            """
+            Callback function triggered on calculated exponentially weighted moving average (EWM) signal from the calculator.
+
+            This function handles the calculated EWM data and updates the canvas with the appropriate pen settings.
+
+            Args:
+                item (PVItem): The PVItem for which the EWM is calculated.
+                result (List[float]): The calculated EWM data.
+
+            """
             name = item.params["name"] + EWM_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DotLine)
             if self.canvas.isCurve(name):
@@ -103,6 +158,16 @@ class MainWindow(QMainWindow):
                 self.canvas.addCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
         
         def onCalculatedAA(item, result):
+            """
+            Callback function triggered on calculated adaptive average (AA) signal from the calculator.
+
+            This function handles the calculated AA data and updates the canvas with the appropriate pen settings.
+
+            Args:
+                item (PVItem): The PVItem for which the AA is calculated.
+                result (List[float]): The calculated AA data.
+
+            """
             name = item.params["name"] + AA_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DashDotLine)
             if self.canvas.isCurve(name):

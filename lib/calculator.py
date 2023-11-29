@@ -6,7 +6,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 from lib.pv_item import PVItem
 
-
+# Global constant for aggregation function
 AGG_FUNC = "mean"
 
 def adaptive_average(waveR, phase_threshold=0.5, n_avg=8):
@@ -21,6 +21,7 @@ def adaptive_average(waveR, phase_threshold=0.5, n_avg=8):
     Returns:
         waveA (ndarray): The adaptive average of the input data.
     """
+    
     # Check if the input data is a numpy array
     if not isinstance(waveR, np.ndarray):
         waveR = np.array(waveR)
@@ -39,6 +40,7 @@ def adaptive_average(waveR, phase_threshold=0.5, n_avg=8):
 
         waveA[n] = np.mean(newPts)
 
+        # Check if phase change exceeds the threshold
         if abs(waveR[n] - waveA[n - 1]) > phase_threshold:
             waveA[n] = waveR[n]
             recentPts = [waveR[n]]
@@ -49,35 +51,67 @@ def adaptive_average(waveR, phase_threshold=0.5, n_avg=8):
 
 
 class Calculator(QThread):
+    """
+    A threaded calculator class for performing data processing operations on items in a PV editor.
+
+    Attributes:
+        calculatedRW (pyqtSignal): Signal emitted upon completion of rolling window calculation.
+        calculatedEWM (pyqtSignal): Signal emitted upon completion of exponential weighted mean calculation.
+        calculatedAA (pyqtSignal): Signal emitted upon completion of adaptive average calculation.
+
+    Methods:
+        __init__: Initializes the Calculator object with a PV editor.
+        run: Overrides the run method of QThread; iterates over PV editor items, performs calculations, and emits signals.
+    """
     calculatedRW = pyqtSignal(PVItem, list)
     calculatedEWM = pyqtSignal(PVItem, list)
     calculatedAA = pyqtSignal(PVItem, list)
     
     def __init__(self, pv_editor):
+        """
+        Initializes a new Calculator instance.
+
+        Args:
+            pv_editor (iterable): The PV editor containing items for calculation.
+        """
+        
         super().__init__()
         self.pv_editor = pv_editor
         
-    def run(self):        
+    def run(self):
+        """
+        Overrides the run method of QThread.
+        Iterates over items in the PV editor, performs calculations, and emits signals.
+        """
+        
         for item in self.pv_editor:
-            kwargs = deepcopy(item.params["kwargs"])  # so `del` will not affect the item's data directly
+            kwargs = deepcopy(item.params["kwargs"])  # Create a deep copy to avoid modifying the original data
+            
+            # Extract parameters for rolling window, exponential weighted mean, and adaptive average
             rw_kwargs = kwargs.get("rolling_window", {})
             ewm_kwargs = kwargs.get("ewm", {})
             aa_kwargs = kwargs.get("adaptive", {})
             
+            # Check if rolling window is enabled
             if rw_kwargs.get("enabled", False):
-                del rw_kwargs["enabled"]
+                del rw_kwargs["enabled"]  # Remove the 'enabled' key to avoid interfering with the rolling function
                 
+                # Apply rolling window and emit the result signal
                 rw_result = pd.Series(item.samples).rolling(**rw_kwargs).agg(AGG_FUNC).tolist()
                 self.calculatedRW.emit(item, rw_result)
                 
+            # Check if exponential weighted mean is enabled
             if ewm_kwargs.get("enabled", False):
-                del ewm_kwargs["enabled"]
+                del ewm_kwargs["enabled"]  # Remove the 'enabled' key
                 
+                # Apply exponential weighted mean and emit the result signal
                 ewm_result = pd.Series(item.samples).ewm(**ewm_kwargs).agg(AGG_FUNC).tolist()
                 self.calculatedEWM.emit(item, ewm_result)
                 
+            # Check if adaptive average is enabled
             if aa_kwargs.get("enabled", False):
-                del aa_kwargs["enabled"]
+                del aa_kwargs["enabled"]  # Remove the 'enabled' key
                 
+                # Apply adaptive average and emit the result signal
                 aa_result = adaptive_average(item.samples, **aa_kwargs)
                 self.calculatedAA.emit(item, aa_result)
