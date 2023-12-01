@@ -26,6 +26,12 @@ DEFAULT_KWARGS = {"original": {'enabled': True},
 DIALOG_WIDTH = 350
 DIALOG_MODALITY = True
 DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "resources", "images", "frib.png")
+PV_VALUE_LABEL_TEXT = "Most Recent Value: "
+PV_VALUE_LABEL_TEXT_SIZE = 8
+PV_VALUE_LABEL_GEOMETRY = (15, 0, 15)  # (x, y, height)
+PARAM_BUTTON_WIDTH = 100
+COLOR_SQUARE_WIDTH = 50
+
 
 class PVItem(QWidget):
     """
@@ -80,6 +86,7 @@ class PVItem(QWidget):
         self.sample_times = []
         
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setContentsMargins(0, 0, 0, 0)
         
         # Set up PV name editing
         self.line_edit = QLineEdit("")
@@ -91,12 +98,23 @@ class PVItem(QWidget):
         # Set up PV color selection
         self.color_square = PaletteButton()
         self.color_square.setEnabled(False)  # button -> colored rectangle
+        self.color_square.setFixedWidth(COLOR_SQUARE_WIDTH)
         
         # Set up PV parameter dialog
         self.param_button = QPushButton(PV_PARAM_BUTTON_LABEL)
         self.param_button.pressed.connect(self._showParamDialog)
+        self.param_button.setFixedWidth(PARAM_BUTTON_WIDTH)
         self.param_dialog = ParameterDialog()
         self.param_dialog.apply_button.pressed.connect(self._onApplyParams)
+        
+        # Set up PV value display
+        self.value_display = QLabel(PV_VALUE_LABEL_TEXT + "--", self)
+        self.value_display.setGeometry(PV_VALUE_LABEL_GEOMETRY[0], PV_VALUE_LABEL_GEOMETRY[1], 
+                                       pv_editor.width() - PV_VALUE_LABEL_GEOMETRY[0], PV_VALUE_LABEL_GEOMETRY[2])
+        font = self.value_display.font()
+        font.setPointSize(PV_VALUE_LABEL_TEXT_SIZE)
+        self.value_display.setFont(font)
+        self.value_display.setVisible(False)
         
         # Set up layout
         layout = QHBoxLayout()
@@ -138,9 +156,11 @@ class PVItem(QWidget):
             name_was_set = "name" in self.params.keys() and self.params["name"] is not None
             only_line_edit_showing = self.layout().indexOf(self.color_square) == -1 and self.layout().indexOf(self.param_button) == -1
             if name_was_set and only_line_edit_showing:
+                self.value_display.setVisible(True)
                 self.layout().addSpacing(10)
                 self.layout().addWidget(self.color_square)
                 self.layout().addWidget(self.param_button)
+                
                 
             # Update the color square and parameter dialog
             self.color_square.setColor(self.params["color"])
@@ -180,6 +200,9 @@ class PVItem(QWidget):
         sample = self.pv.get()
         self.sample_times.append(float(time()))
         self.samples.append(sample)
+        
+        self.value_display.setText(PV_VALUE_LABEL_TEXT + str(sample))
+        
         return sample
 
 
