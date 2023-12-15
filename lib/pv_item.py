@@ -27,7 +27,7 @@ DIALOG_WIDTH = 350
 DIALOG_MODALITY = True
 DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 PV_VALUE_LABEL_TEXT_SIZE = 8
-PV_VALUE_LABEL_GEOMETRY = (15, 0, 15)  # (x, y, height)
+PV_VALUE_LABEL_GEOMETRY = (15, -1, 15)  # (x, y, height)
 PARAM_BUTTON_WIDTH = 100
 COLOR_SQUARE_WIDTH = 50
 
