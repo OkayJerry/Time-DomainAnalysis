@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QGroupBox, QSlider, QLabel, QHBoxLayout
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSlot
 
 LABEL_TEXT = "Number of Data Points: "
 MINIMUM = 3
