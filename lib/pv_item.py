@@ -26,7 +26,6 @@ DEFAULT_KWARGS = {"original": {'enabled': True},
 DIALOG_WIDTH = 350
 DIALOG_MODALITY = True
 DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "resources", "images", "frib.png")
-PV_VALUE_LABEL_TEXT = "Most Recent Value: "
 PV_VALUE_LABEL_TEXT_SIZE = 8
 PV_VALUE_LABEL_GEOMETRY = (15, 0, 15)  # (x, y, height)
 PARAM_BUTTON_WIDTH = 100
@@ -108,7 +107,7 @@ class PVItem(QWidget):
         self.param_dialog.apply_button.pressed.connect(self._onApplyParams)
         
         # Set up PV value display
-        self.value_display = QLabel(PV_VALUE_LABEL_TEXT + "--", self)
+        self.value_display = QLabel("", self)
         self.value_display.setGeometry(PV_VALUE_LABEL_GEOMETRY[0], PV_VALUE_LABEL_GEOMETRY[1], 
                                        pv_editor.width() - PV_VALUE_LABEL_GEOMETRY[0], PV_VALUE_LABEL_GEOMETRY[2])
         font = self.value_display.font()
@@ -201,7 +200,7 @@ class PVItem(QWidget):
         self.sample_times.append(float(time()))
         self.samples.append(sample)
         
-        self.value_display.setText(PV_VALUE_LABEL_TEXT + str(sample))
+        self.value_display.setText(str(sample))
         
         return sample
 

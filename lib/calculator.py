@@ -31,6 +31,7 @@ def adaptive_average(waveR, phase_threshold=0.5, n_avg=8):
 
     recentPts = [waveR[0]]
     waveA = np.zeros(len(waveR))
+    waveA[0] = waveR[0]
 
     for n in range(1, len(waveR)):
         newPts = np.append(recentPts, waveR[n])
@@ -67,7 +68,7 @@ class Calculator(QThread):
     calculatedEWM = pyqtSignal(PVItem, list)
     calculatedAA = pyqtSignal(PVItem, list)
     
-    def __init__(self, pv_editor):
+    def __init__(self, pv_editor, data_pnt_limiter):
         """
         Initializes a new Calculator instance.
 
@@ -77,12 +78,14 @@ class Calculator(QThread):
         
         super().__init__()
         self.pv_editor = pv_editor
+        self.data_pnt_limiter = data_pnt_limiter
         
     def run(self):
         """
         Overrides the run method of QThread.
         Iterates over items in the PV editor, performs calculations, and emits signals.
         """
+        sample_limit = self.data_pnt_limiter.getValue()
         
         for item in self.pv_editor:
             kwargs = deepcopy(item.params["kwargs"])  # Create a deep copy to avoid modifying the original data
@@ -92,12 +95,14 @@ class Calculator(QThread):
             ewm_kwargs = kwargs.get("ewm", {})
             aa_kwargs = kwargs.get("adaptive", {})
             
+            samples = item.samples[-sample_limit:] if sample_limit and sample_limit < len(item.samples) else item.samples
+            
             # Check if rolling window is enabled
             if rw_kwargs.get("enabled", False):
                 del rw_kwargs["enabled"]  # Remove the 'enabled' key to avoid interfering with the rolling function
                 
                 # Apply rolling window and emit the result signal
-                rw_result = pd.Series(item.samples).rolling(**rw_kwargs).agg(AGG_FUNC).tolist()
+                rw_result = pd.Series(samples).rolling(**rw_kwargs).agg(AGG_FUNC).tolist()
                 self.calculatedRW.emit(item, rw_result)
                 
             # Check if exponential weighted mean is enabled
@@ -105,7 +110,7 @@ class Calculator(QThread):
                 del ewm_kwargs["enabled"]  # Remove the 'enabled' key
                 
                 # Apply exponential weighted mean and emit the result signal
-                ewm_result = pd.Series(item.samples).ewm(**ewm_kwargs).agg(AGG_FUNC).tolist()
+                ewm_result = pd.Series(samples).ewm(**ewm_kwargs).agg(AGG_FUNC).tolist()
                 self.calculatedEWM.emit(item, ewm_result)
                 
             # Check if adaptive average is enabled
@@ -113,5 +118,5 @@ class Calculator(QThread):
                 del aa_kwargs["enabled"]  # Remove the 'enabled' key
                 
                 # Apply adaptive average and emit the result signal
-                aa_result = adaptive_average(item.samples, **aa_kwargs)
+                aa_result = adaptive_average(samples, **aa_kwargs)
                 self.calculatedAA.emit(item, aa_result)

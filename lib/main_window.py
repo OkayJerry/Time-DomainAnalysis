@@ -1,6 +1,6 @@
 import os
 
-from PyQt6.QtWidgets import QMainWindow, QGridLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QGridLayout, QWidget, QSlider
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 from pyqtgraph import mkPen
@@ -10,12 +10,15 @@ from lib.canvas import Canvas
 from lib.clock import Clock
 from lib.menu_bar import MenuBar
 from lib.pv_editor import PVEditor
+from lib.data_point_limiter import DataPointLimiter
 
 # Global constants for the main window
 WINDOW_TITLE = "Time-Domain Analysis"
 WINDOW_ICON_FILE = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 COLUMN_ZERO_WIDTH = 450
 PEN_WIDTH = 2
+CLOCK_HEIGHT = 75
+SLIDER_HEIGHT = 55
 
 RW_EXTENSION = " Rolling-Window"
 EWM_EXTENSION = " Exponentially Weighted"
@@ -51,17 +54,20 @@ class MainWindow(QMainWindow):
         # Create main components
         self.canvas = Canvas()
         self.pv_editor = PVEditor(self)
-        self.calculator = Calculator(self.pv_editor)
+        self.data_pnt_limiter = DataPointLimiter()
+        self.calculator = Calculator(self.pv_editor, self.data_pnt_limiter)
         self.clock = Clock()
         
         # Set up the layout
         layout = QGridLayout()
         layout.addWidget(self.clock, 0, 0)
-        layout.addWidget(self.pv_editor, 1, 0)
+        layout.addWidget(self.pv_editor, 1, 0, 2, 1)
         layout.addWidget(self.canvas, 0, 1, 2, 1)
+        layout.addWidget(self.data_pnt_limiter, 2, 1, 1, 1)
         
-        self.clock.setFixedWidth(COLUMN_ZERO_WIDTH)
+        self.clock.setFixedSize(COLUMN_ZERO_WIDTH, CLOCK_HEIGHT)
         self.pv_editor.setFixedWidth(COLUMN_ZERO_WIDTH)
+        self.data_pnt_limiter.setFixedHeight(SLIDER_HEIGHT)
         
         self.setCentralWidget(QWidget())
         self.centralWidget().setLayout(layout)
@@ -100,10 +106,13 @@ class MainWindow(QMainWindow):
         
                 draw_enabled = item.params.get("kwargs", {}).get("original", {}).get("enabled", False)
                 
+                sample_limit = self.data_pnt_limiter.getValue()
+                samples = item.samples[-sample_limit:] if sample_limit and sample_limit < len(item.samples) else item.samples
+                
                 if draw_enabled and self.canvas.isCurve(item.params["name"]):
-                    self.canvas.updateCurve(item.params["name"], item.sample_times, item.samples, pen, item.params["subplot_id"])
+                    self.canvas.updateCurve(item.params["name"], item.sample_times[-len(samples):], samples, pen, item.params["subplot_id"])
                 elif draw_enabled and not self.canvas.isCurve(item.params["name"]):
-                    self.canvas.addCurve(item.params["name"], item.sample_times, item.samples, pen, item.params["subplot_id"])
+                    self.canvas.addCurve(item.params["name"], item.sample_times[-len(samples):], samples, pen, item.params["subplot_id"])
                 elif not draw_enabled and self.canvas.isCurve(item.params["name"]):
                     self.canvas.removeCurve(item.params["name"])
                 
@@ -135,9 +144,9 @@ class MainWindow(QMainWindow):
             name = item.params["name"] + RW_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DashLine)
             if self.canvas.isCurve(name):
-                self.canvas.updateCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
+                self.canvas.updateCurve(name, item.sample_times[-len(result):], result, pen, item.params["subplot_id"])
             else:
-                self.canvas.addCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
+                self.canvas.addCurve(name, item.sample_times[-len(result):], result, pen, item.params["subplot_id"])
         
         def onCalculatedEWM(item, result):
             """
@@ -153,9 +162,9 @@ class MainWindow(QMainWindow):
             name = item.params["name"] + EWM_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DotLine)
             if self.canvas.isCurve(name):
-                self.canvas.updateCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
+                self.canvas.updateCurve(name, item.sample_times[-len(result):], result, pen, item.params["subplot_id"])
             else:
-                self.canvas.addCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
+                self.canvas.addCurve(name, item.sample_times[-len(result):], result, pen, item.params["subplot_id"])
         
         def onCalculatedAA(item, result):
             """
@@ -171,9 +180,9 @@ class MainWindow(QMainWindow):
             name = item.params["name"] + AA_EXTENSION
             pen = mkPen(color=item.params["color"], width=PEN_WIDTH, style=Qt.PenStyle.DashDotLine)
             if self.canvas.isCurve(name):
-                self.canvas.updateCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
+                self.canvas.updateCurve(name, item.sample_times[-len(result):], result, pen, item.params["subplot_id"])
             else:
-                self.canvas.addCurve(name, item.sample_times, result, pen, item.params["subplot_id"])
+                self.canvas.addCurve(name, item.sample_times[-len(result):], result, pen, item.params["subplot_id"])
                 
         self.clock.timer.timeout.connect(onClockTimeout)
         self.calculator.calculatedRW.connect(onCalculatedRW)

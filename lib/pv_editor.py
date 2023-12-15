@@ -64,6 +64,7 @@ class PVEditor(QGroupBox):
         self.table.setSelectionMode(TABLE_SELECTION_MODE)
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self._showTableContextMenu)
+        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         
         # Set up the layout 
         layout = QVBoxLayout()

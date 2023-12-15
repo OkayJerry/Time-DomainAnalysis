@@ -19,10 +19,10 @@ class MenuBar(QMenuBar):
 
     Methods:
         __init__: Initializes the MenuBar with actions and menus.
-        onOpenData: Handles the "Open Data" action.
-        onOpenParameters: Handles the "Open Parameters" action.
-        onSaveData: Handles the "Save Data As" action.
-        onSaveParameters: Handles the "Save Parameters As" action.
+        onFileOpenData: Handles the File>Open>Data action.
+        onFileOpenParameters: Handles the File>Open>Parameters action.
+        onFileSaveData: Handles the File>Save>Data action.
+        onFileSaveParameters: Handles the File>Save>Parameters action.
     """
     def __init__(self, main_window):
         """
@@ -52,10 +52,10 @@ class MenuBar(QMenuBar):
         
         # Connect actions to their respective slots
         new_action.triggered.connect(self.main_window.reset)
-        open_data_action.triggered.connect(self.onOpenData)
-        open_params_action.triggered.connect(self.onOpenParameters)
-        save_data_action.triggered.connect(self.onSaveData)
-        save_params_action.triggered.connect(self.onSaveParameters)
+        open_data_action.triggered.connect(self.onFileOpenData)
+        open_params_action.triggered.connect(self.onFileOpenParameters)
+        save_data_action.triggered.connect(self.onFileSaveData)
+        save_params_action.triggered.connect(self.onFileSaveParameters)
         
         # Add menus to the menu bar
         file_menu = self.addMenu("File")
@@ -63,7 +63,7 @@ class MenuBar(QMenuBar):
         file_menu.addMenu(open_menu)
         file_menu.addMenu(save_menu)
     
-    def onOpenData(self):
+    def onFileOpenData(self):
         """
         Handles the "Open Data" action. Opens a file dialog to load data.
         """
@@ -107,7 +107,7 @@ class MenuBar(QMenuBar):
                 # Update parameters for the PVItem
                 item.updateParams({"name": name})
             
-    def onOpenParameters(self):
+    def onFileOpenParameters(self):
         """
         Handles the "Open Parameters" action. Opens a file dialog to load parameter data.
         """
@@ -131,7 +131,7 @@ class MenuBar(QMenuBar):
                 # Update parameters for the PVItem based on the loaded data
                 item.updateParams(params)
     
-    def onSaveData(self):
+    def onFileSaveData(self):
         """
         Handles the "Save Data As" action. Opens a file dialog to save data.
         """
@@ -171,7 +171,7 @@ class MenuBar(QMenuBar):
             else:
                 df.to_csv(file_path, index=False)
             
-    def onSaveParameters(self):
+    def onFileSaveParameters(self):
         """
         Handles the "Save Parameters As" action. Opens a file dialog to save parameter data.
         """
