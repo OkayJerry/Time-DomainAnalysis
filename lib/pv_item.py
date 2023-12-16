@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from time import time
 
 from PyQt6.QtWidgets import (QWidget, QDoubleSpinBox, QComboBox, QRadioButton, QPushButton, 
@@ -286,7 +287,7 @@ class ParameterDialog(QDialog):
             self.palette_button.setColor(params["color"])
             
         if "subplot_id" in keys:
-            self.subplot_id_spinbox.setValue(params["subplot_id"])
+            self.subplot_id_spinbox.setValue(params["subplot_id"] + 1)
             
         if "kwargs" in keys:
             self.tree.updateKwargs(params["kwargs"])
