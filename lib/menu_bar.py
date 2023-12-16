@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 
 from PyQt6.QtWidgets import QMenuBar, QFileDialog, QMenu
 from PyQt6.QtGui import QAction
@@ -7,8 +8,10 @@ from PyQt6.QtGui import QAction
 from pandas import DataFrame, read_csv, read_json
 
 # Global constants for file extensions and headers
-SAMPLE_HEADER_EXTENSION = "_samples"
-SAMPLE_TIME_HEADER_EXTENSION = "_sample_times"
+SAMPLE_HEADER_EXT = "_samples"
+SAMPLE_TIME_HEADER_EXT = "_sample_times"
+DEFAULT_SAVE_DATA_EXT = ".csv"
+DEFAULT_SAVE_PARAMS_EXT = ".json"
 
 class MenuBar(QMenuBar):
     """
@@ -86,13 +89,13 @@ class MenuBar(QMenuBar):
             sample_map = {}
             times_map = {}
             for header, vals in data.items():
-                if SAMPLE_HEADER_EXTENSION in header:
+                if SAMPLE_HEADER_EXT in header:
                     # Extract sample name and map to values
-                    name = header.replace(SAMPLE_HEADER_EXTENSION, "")
+                    name = header.replace(SAMPLE_HEADER_EXT, "")
                     sample_map[name] = vals
                 else:
                     # Extract sample time name and map to values
-                    name = header.replace(SAMPLE_TIME_HEADER_EXTENSION, "")
+                    name = header.replace(SAMPLE_TIME_HEADER_EXT, "")
                     times_map[name] = vals
                     
             # Iterate through sample names and create PV items
@@ -135,9 +138,16 @@ class MenuBar(QMenuBar):
         """
         Handles the "Save Data As" action. Opens a file dialog to save data.
         """
-        file_path, _ = QFileDialog.getSaveFileName(self, "Save Data As...", "", "All Files (*);;JSON Files (*.json);;CSV Files (*.csv)")
+        now = datetime.now()
+        file_path, _ = QFileDialog.getSaveFileName(self, 
+                                                   "Save Data As...", 
+                                                   f"TDA-data_{now.year}{now.month}{now.day}_{now.hour}{now.minute}{now.second}" + DEFAULT_SAVE_DATA_EXT, 
+                                                   "All Files (*);;JSON Files (*.json);;CSV Files (*.csv)")
         _, file_extension = os.path.splitext(file_path)
         
+        if not file_extension:
+            file_extension = DEFAULT_SAVE_DATA_EXT
+            
         # Check if a valid file path with either JSON or CSV extension is selected
         if file_path and (file_extension == ".json" or file_extension == ".csv"):
             # Initialize an empty dictionary to store data
@@ -155,8 +165,8 @@ class MenuBar(QMenuBar):
                     max_num_samples = len(item.samples)
                 
                 # Store sample data and corresponding sample times in the dictionary
-                d[item.params["name"] + SAMPLE_HEADER_EXTENSION] = item.samples
-                d[item.params["name"] + SAMPLE_TIME_HEADER_EXTENSION] = item.sample_times
+                d[item.params["name"] + SAMPLE_HEADER_EXT] = item.samples
+                d[item.params["name"] + SAMPLE_TIME_HEADER_EXT] = item.sample_times
             
             # Fill missing samples with `None` to ensure uniform data structure
             for name in d.keys():
@@ -175,9 +185,16 @@ class MenuBar(QMenuBar):
         """
         Handles the "Save Parameters As" action. Opens a file dialog to save parameter data.
         """
-        file_path, _ = QFileDialog.getSaveFileName(self, "Save JSON File As...", "", "JSON Files (*.json);;All Files (*)")
+        now = datetime.now()
+        file_path, _ = QFileDialog.getSaveFileName(self,
+                                                   "Save JSON File As...",
+                                                   f"TDA-params_{now.year}{now.month}{now.day}_{now.hour}{now.minute}{now.second}" + DEFAULT_SAVE_PARAMS_EXT,
+                                                   "JSON Files (*.json);;All Files (*)")
         _, file_extension = os.path.splitext(file_path)
     
+        if not file_extension:
+                file_extension = DEFAULT_SAVE_PARAMS_EXT
+            
         # Check if a valid file path with a JSON extension is selected
         if file_path and file_extension == ".json":
             # Extract PV parameters from PV items in the main window
