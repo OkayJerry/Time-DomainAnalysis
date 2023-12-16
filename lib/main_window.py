@@ -18,7 +18,7 @@ WINDOW_ICON_FILE = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 COLUMN_ZERO_WIDTH = 450
 PEN_WIDTH = 2
 CLOCK_HEIGHT = 75
-SLIDER_HEIGHT = 65
+SLIDER_HEIGHT = 70
 
 RW_EXTENSION = " Rolling-Window"
 EWM_EXTENSION = " Exponentially Weighted"
