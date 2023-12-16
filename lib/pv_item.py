@@ -28,7 +28,7 @@ DIALOG_WIDTH = 350
 DIALOG_MODALITY = False
 DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 PV_VALUE_LABEL_TEXT_SIZE = 8
-PV_VALUE_LABEL_GEOMETRY = (15, -1, 15)  # (x, y, height)
+PV_VALUE_LABEL_GEOMETRY = (175, -1, 15)  # (x, y, height)
 PARAM_BUTTON_WIDTH = 100
 COLOR_SQUARE_WIDTH = 50
 
@@ -203,7 +203,7 @@ class PVItem(QWidget):
         self.sample_times.append(float(time()))
         self.samples.append(sample)
         
-        self.value_display.setText(str(sample))
+        self.value_display.setText("{:.3e}".format(sample))
         
         return sample
 
