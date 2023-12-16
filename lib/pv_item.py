@@ -24,7 +24,7 @@ DEFAULT_KWARGS = {"original": {'enabled': True},
                   "ewm": {'enabled': False, 'com': 0.0, 'span': None, 'halflife': None, 'alpha': None, 'adjust': False},
                   "adaptive": {'enabled': False, 'phase_threshold': 0.5, 'n_avg': 8}}
 DIALOG_WIDTH = 350
-DIALOG_MODALITY = True
+DIALOG_MODALITY = False
 DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 PV_VALUE_LABEL_TEXT_SIZE = 8
 PV_VALUE_LABEL_GEOMETRY = (15, -1, 15)  # (x, y, height)
@@ -105,6 +105,7 @@ class PVItem(QWidget):
         self.param_button.setFixedWidth(PARAM_BUTTON_WIDTH)
         self.param_dialog = ParameterDialog()
         self.param_dialog.apply_button.pressed.connect(self._onApplyParams)
+        self.param_dialog.apply_ok_button.pressed.connect(self._onApplyParams)
         
         # Set up PV value display
         self.value_display = QLabel("", self)
@@ -177,7 +178,8 @@ class PVItem(QWidget):
         """
         Shows the parameter dialog for the PV item.
         """
-        self.param_dialog.exec()
+        self.param_dialog.updateParams(self.params)
+        self.param_dialog.show()
         
     def _onApplyParams(self):
         """
@@ -219,6 +221,7 @@ class ParameterDialog(QDialog):
         subplot_id_spinbox (QSpinBox): A spin box for selecting the subplot ID.
         palette_button (PaletteButton): A button for choosing the PV color.
         apply_button (QPushButton): A button for applying changes.
+        apply_ok_button (QPushButton): A button for applying changes and closing the window.
     """
     def __init__(self):
         """
@@ -238,9 +241,10 @@ class ParameterDialog(QDialog):
         self.subplot_id_spinbox.setAlignment(SPINBOX_ALIGNMENT)
         self.palette_button = PaletteButton()
         self.apply_button = QPushButton("Apply")
+        self.apply_ok_button = QPushButton("Apply && OK")
         
-        # Connect the apply_button to the accept method
-        self.apply_button.pressed.connect(self.accept)
+        # Connect the apply_ok_button to the accept method
+        self.apply_ok_button.pressed.connect(self.accept)
         
         # Set up the layout
         layout = QGridLayout()
@@ -249,7 +253,8 @@ class ParameterDialog(QDialog):
         layout.addWidget(self.subplot_id_spinbox, 1, 1, 1, 1)
         layout.addWidget(QLabel("Color"), 2, 0, 1, 1)
         layout.addWidget(self.palette_button, 2, 1, 1, 1)
-        layout.addWidget(self.apply_button, 3, 0, 1, 2)
+        layout.addWidget(self.apply_button, 3, 0, 1, 1)
+        layout.addWidget(self.apply_ok_button, 3, 1, 1, 1)
         self.setLayout(layout)
         
     def getParams(self) -> dict:
