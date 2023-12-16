@@ -116,7 +116,7 @@ class Canvas(pg.GraphicsLayoutWidget):
             pg.PlotItem: The added subplot.
         """
         subplot = self.addPlot(row=subplot_id, col=COLUMN_INDEX, name=f"Subplot {subplot_id}",)
-        subplot.setMouseEnabled(x=False, y=False)
+        subplot.setMouseEnabled(x=True, y=True)
         subplot.setAxisItems({"bottom": pg.DateAxisItem()})
         return subplot
         
