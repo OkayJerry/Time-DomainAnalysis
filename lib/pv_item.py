@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (QWidget, QDoubleSpinBox, QComboBox, QRadioButton, Q
                              QDialog, QSpinBox, QLabel, QColorDialog, QLineEdit, QMessageBox,
                              QTreeWidget, QTreeWidgetItem, QCheckBox, QHBoxLayout, QGridLayout, QSizePolicy)
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QIcon, QColor
+from PyQt6.QtGui import QIcon, QColor, QFontMetrics
 
 from epics import PV
 
@@ -28,7 +28,7 @@ DIALOG_WIDTH = 350
 DIALOG_MODALITY = False
 DIALOG_ICON_FILENAME = os.path.join(os.getcwd(), "resources", "images", "frib.png")
 PV_VALUE_LABEL_TEXT_SIZE = 8
-PV_VALUE_LABEL_GEOMETRY = (175, -1, 15)  # (x, y, height)
+PV_VALUE_LABEL_GEOMETRY = (220, -1, 15)  # (x, y, height)
 PARAM_BUTTON_WIDTH = 100
 COLOR_SQUARE_WIDTH = 50
 
@@ -110,8 +110,6 @@ class PVItem(QWidget):
         
         # Set up PV value display
         self.value_display = QLabel("", self)
-        self.value_display.setGeometry(PV_VALUE_LABEL_GEOMETRY[0], PV_VALUE_LABEL_GEOMETRY[1], 
-                                       pv_editor.width() - PV_VALUE_LABEL_GEOMETRY[0], PV_VALUE_LABEL_GEOMETRY[2])
         font = self.value_display.font()
         font.setPointSize(PV_VALUE_LABEL_TEXT_SIZE)
         self.value_display.setFont(font)
@@ -203,7 +201,12 @@ class PVItem(QWidget):
         self.sample_times.append(float(time()))
         self.samples.append(sample)
         
-        self.value_display.setText("{:.3e}".format(sample))
+        sample_text = "{:.3e}".format(sample)
+        font_metrics = QFontMetrics(self.value_display.font())
+        text_width = font_metrics.horizontalAdvance(sample_text)
+        self.value_display.setGeometry(PV_VALUE_LABEL_GEOMETRY[0] - text_width, PV_VALUE_LABEL_GEOMETRY[1], 
+                                       text_width, PV_VALUE_LABEL_GEOMETRY[2])
+        self.value_display.setText(sample_text)
         
         return sample
 
