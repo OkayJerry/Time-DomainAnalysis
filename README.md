@@ -5,6 +5,10 @@ Software for Time-Domain Analysis.
 
 <img width="1440" alt="Screenshot 2023-12-16 at 3 16 22 PM" src="https://github.com/OkayJerry/Time-DomainAnalysis/assets/70593138/06ce5ca9-97a9-494a-80ed-03362e1123f9">
 
+<p align="center">
+This software is a tool designed for the analysis of EPICS (Experimental Physics and Industrial Control System) Process Variables (PVs). It provides a suite of tools for researchers and engineers working with EPICS data.
+</p>
+
 ## How to Install
 ### Windows / MacOS
 ```
