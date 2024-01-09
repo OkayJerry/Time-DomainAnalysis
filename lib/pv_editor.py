@@ -172,7 +172,7 @@ class PVEditor(QGroupBox):
             self.main_window.canvas.removeCurve(params["name"])
             
         if self.main_window.canvas.isCurve(RW_NAME(params["name"])) and not rw_kwargs.get("enabled", False):
-            self.main_window.canvas.removeCurve(params["name"])
+            self.main_window.canvas.removeCurve(RW_NAME(params["name"]))
             
         if self.main_window.canvas.isCurve(EWM_NAME(params["name"])) and not ewm_kwargs.get("enabled", False):
             self.main_window.canvas.removeCurve(EWM_NAME(params["name"]))
