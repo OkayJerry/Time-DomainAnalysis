@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QGroupBox, QPushButton, QVBoxLayout, QTableWidget, QHeaderView, QMenu
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 
 from lib.pv_item import PVItem
@@ -38,6 +38,8 @@ class PVEditor(QGroupBox):
         addItem: Adds a new PV item to the editor.
         _onItemParamsUpdated: Handles updates to PV item parameters.
     """
+    updated = pyqtSignal()
+    
     def __init__(self, main_window):
         """
         Initializes a new PVEditor instance.
@@ -92,10 +94,14 @@ class PVEditor(QGroupBox):
         Args:
             pos: Position of the right-click.
         """
+        def deleteScript():
+            self.table.removeRow(self.table.rowAt(pos.y()))
+            self.updated.emit()
+            
         context_menu = QMenu(self.table)
         
         delete_action = QAction("Delete", self.table)
-        delete_action.triggered.connect(lambda: self.table.removeRow(self.table.rowAt(pos.y())))
+        delete_action.triggered.connect(deleteScript)
         
         context_menu.addAction(delete_action)
         context_menu.exec(self.table.mapToGlobal(pos))
@@ -173,3 +179,5 @@ class PVEditor(QGroupBox):
             
         if self.main_window.canvas.isCurve(AA_NAME(params["name"])) and not aa_kwargs.get("enabled", False):
             self.main_window.canvas.removeCurve(AA_NAME(params["name"]))
+
+        self.updated.emit()

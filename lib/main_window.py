@@ -95,13 +95,15 @@ class MainWindow(QMainWindow):
 
         The method establishes connections between the signals of the clock, calculator, and the corresponding functions.
         """
-        def onClockTimeout():
+        def updateCanvas(sample: bool = True):
             # Generate new samples & draw (if enabled)
             for item in self.pv_editor:
                 if not item.pv:
                     continue
                 
-                item.sample()
+                if sample:
+                    item.sample()
+                    
                 pen = mkPen(color=item.params["color"], width=PEN_WIDTH)
         
                 draw_enabled = item.params.get("kwargs", {}).get("original", {}).get("enabled", False)
@@ -125,8 +127,7 @@ class MainWindow(QMainWindow):
                 if label not in names:
                     self.canvas.removeCurve(label)
                     
-                
-            # Run the calculator
+            # Run Calculator
             if not self.calculator.isRunning():
                 self.calculator.start()
                 
@@ -183,9 +184,10 @@ class MainWindow(QMainWindow):
                 self.canvas.updateCurve(name, item.sample_times[-len(result):], result, pen, item.params["subplot_id"])
             else:
                 self.canvas.addCurve(name, item.sample_times[-len(result):], result, pen, item.params["subplot_id"])
-                
-        self.clock.timer.timeout.connect(onClockTimeout)
+            
+        self.clock.timer.timeout.connect(updateCanvas)
         self.calculator.calculatedRW.connect(onCalculatedRW)
         self.calculator.calculatedEWM.connect(onCalculatedEWM)
         self.calculator.calculatedAA.connect(onCalculatedAA)
-        
+        self.pv_editor.updated.connect(lambda: updateCanvas(sample=False) if not self.clock.timer.isActive() else None)
+        self.data_pnt_limiter.slider.valueChanged.connect(lambda: updateCanvas(sample=False) if not self.clock.timer.isActive() else None)
