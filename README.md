@@ -10,7 +10,7 @@ This software is designed to analyze EPICS (Experimental Physics and Industrial 
 ![Main Marked Up](https://github.com/OkayJerry/Time-DomainAnalysis/assets/70593138/dc63f378-dda4-4eed-9a30-08d80972f6e2)
 
 ### Basic Elements
-1. **Sampling/Plotting Frequency** $\rightarrow$ Sample & plot PV data every $\dfrac{1}{x \text{ Hz}}$ seconds.
+1. **Sampling/Plotting Frequency** $\rightarrow$ Sample & plot PV data every $\dfrac{1}{x}$ seconds.
 2. **Start/Stop Button** $\rightarrow$ Toggles sampling, calculations, & plotting.
 3. **Add PV Button** $\rightarrow$ Adds a blank PV to the PV Editor's table.
 4. **PV Name Line Edit** $\rightarrow$ Displays the name of the PV. It is editable, but duplicate names are not allowed.
