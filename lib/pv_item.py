@@ -156,7 +156,6 @@ class PVItem(QWidget):
             only_line_edit_showing = self.layout().indexOf(self.color_square) == -1 and self.layout().indexOf(self.param_button) == -1
             if name_was_set and only_line_edit_showing:
                 self.value_display.setVisible(True)
-                self.layout().addSpacing(10)
                 self.layout().addWidget(self.color_square)
                 self.layout().addWidget(self.param_button)
                 
@@ -204,7 +203,8 @@ class PVItem(QWidget):
         sample_text = "{:.3e}".format(sample)
         font_metrics = QFontMetrics(self.value_display.font())
         text_width = font_metrics.horizontalAdvance(sample_text)
-        self.value_display.setGeometry(PV_VALUE_LABEL_GEOMETRY[0] - text_width, PV_VALUE_LABEL_GEOMETRY[1], 
+        
+        self.value_display.setGeometry(self.line_edit.width() - text_width, PV_VALUE_LABEL_GEOMETRY[1], 
                                        text_width, PV_VALUE_LABEL_GEOMETRY[2])
         self.value_display.setText(sample_text)
         
