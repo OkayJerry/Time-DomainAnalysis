@@ -1,6 +1,6 @@
 <h1 align="center">Time-Domain Analysis Software</h1>
 
-![Main](https://github.com/OkayJerry/Time-DomainAnalysis/assets/70593138/b8942bf9-c563-4d0f-9a5a-8a89715b558d)
+![cCEIdwii8g](https://github.com/OkayJerry/Time-DomainAnalysis/assets/70593138/5df1a3e1-5fca-406a-8e0c-f25ec3c2e886)
 
 <p align="center">
 This software is designed to analyze EPICS (Experimental Physics and Industrial Control System) Process Variables (PVs). It provides tools for researchers and engineers working with EPICS data.
@@ -49,3 +49,5 @@ git clone https://github.com/OkayJerry/Time-DomainAnalysis.git
 sudo apt install python3-pyqt6
 sudo apt install python3-pyqtgraph
 ```
+
+
