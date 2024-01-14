@@ -121,10 +121,10 @@ class MainWindow(QMainWindow):
             # Canvas clean-up
             names = [item.params["name"] for item in self.pv_editor]
             for label in self.canvas.getCurveLabels():
-                label = label.replace(RW_EXTENSION, "")
-                label = label.replace(EWM_EXTENSION, "")
-                label = label.replace(AA_EXTENSION, "")
-                if label not in names:
+                label_temp = label.replace(RW_EXTENSION, "")
+                label_temp = label_temp.replace(EWM_EXTENSION, "")
+                label_temp = label_temp.replace(AA_EXTENSION, "")
+                if label_temp not in names:
                     self.canvas.removeCurve(label)
                     
             # Run Calculator
