@@ -27,9 +27,11 @@ This software is designed to analyze EPICS (Experimental Physics and Industrial 
 
 - `Enable` $\rightarrow$ Whether to calculate & plot the parent line.
 - `Original` $\rightarrow$ Plot the data as sampled.
-- `Rolling Window` $\rightarrow$ Calculate & plot the average of a subset of adjacent samples within a moving window.
-- `Exponentially Weighted` $\rightarrow$ Calculate & plot an average that assigns decreasing weights to previous samples. In other words, more importance is given to recent data points.
+- `Rolling Window` $\rightarrow$ [Calculate & plot the average of a subset of adjacent samples within a moving window.](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.rolling.html)
+- `Exponentially Weighted` $\rightarrow$ [Calculate & plot an average that assigns decreasing weights to previous samples. In other words, more importance is given to recent data points.](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.ewm.html)
 - `Adaptive Average` $\rightarrow$ Calculate & plot an average that dynamically adjusts to the characteristics of the data. This is especially useful to account for jumps in value.
+  - `Phase Threshold` $\rightarrow$ Will begin a new averaging phase when the difference in value between two adjacent samples exceeds this threshold.
+  - `Number of Points` $\rightarrow$ Number of points/samples to calculate the mean.
 - `Subplot ID` $\rightarrow$ Assign the line to a subplot.
 - `Color` $\rightarrow$ Opens a color dialog for selecting a color.
 - `Apply` $\rightarrow$ Applies any changes.
