@@ -209,6 +209,10 @@ class PVItem(QWidget):
         self.value_display.setText(sample_text)
         
         return sample
+    
+    def clearSamples(self):
+        self.samples.clear()
+        self.sample_times.clear()
 
 
 class ParameterDialog(QDialog):

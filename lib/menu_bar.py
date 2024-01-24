@@ -38,7 +38,7 @@ class MenuBar(QMenuBar):
                  
         self.main_window = main_window
         
-        # Create menu actions and menus
+        # Create `File` menu actions and menus
         new_action = QAction("New", self)
         open_menu = QMenu("Open...", self)
         save_menu = QMenu("Save...", self)
@@ -53,18 +53,28 @@ class MenuBar(QMenuBar):
         save_menu.addAction(save_data_action)
         save_menu.addAction(save_params_action)
         
-        # Connect actions to their respective slots
+        # Create `Edit` menu actions and menus
+        clear_action = QAction("Clear Sample Histories", self)
+        
+        # Connect `File` actions to their respective slots
         new_action.triggered.connect(self.main_window.reset)
         open_data_action.triggered.connect(self.onFileOpenData)
         open_params_action.triggered.connect(self.onFileOpenParameters)
         save_data_action.triggered.connect(self.onFileSaveData)
         save_params_action.triggered.connect(self.onFileSaveParameters)
         
-        # Add menus to the menu bar
+        # Connect `Edit` actions to their respective slots
+        clear_action.triggered.connect(self.onClearAction)
+        
+        # Add `File` menus to the menu bar
         file_menu = self.addMenu("File")
         file_menu.addAction(new_action)
         file_menu.addMenu(open_menu)
         file_menu.addMenu(save_menu)
+        
+        # Add `Edit` menus to the menu bar
+        edit_menu = self.addMenu("Edit")
+        edit_menu.addAction(clear_action)
     
     def onFileOpenData(self):
         """
@@ -206,3 +216,8 @@ class MenuBar(QMenuBar):
             # Write the JSON data to the selected file path
             with open(file_path, 'w') as file:
                 file.write(json_data)
+
+    def onClearAction(self):
+        for item in self.main_window.pv_editor:
+            item.clearSamples()
+            self.main_window.pv_editor.updated.emit()

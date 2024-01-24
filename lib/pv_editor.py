@@ -98,12 +98,22 @@ class PVEditor(QGroupBox):
             self.table.removeRow(self.table.rowAt(pos.y()))
             self.updated.emit()
             
+        def clearHistory():
+            row = self.table.rowAt(pos.y())
+            item = self.table.cellWidget(row, 0)
+            item.clearSamples()
+            self.updated.emit()
+            
         context_menu = QMenu(self.table)
         
         delete_action = QAction("Delete", self.table)
         delete_action.triggered.connect(deleteScript)
         
+        clear_action = QAction("Clear History", self.table)
+        clear_action.triggered.connect(clearHistory)
+        
         context_menu.addAction(delete_action)
+        context_menu.addAction(clear_action)
         context_menu.exec(self.table.mapToGlobal(pos))
         
     def addItem(self):

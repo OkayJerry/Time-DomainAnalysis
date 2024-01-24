@@ -160,8 +160,7 @@ class Canvas(pg.GraphicsLayoutWidget):
         """
         curve = self._curves[label]
         
-        if x and y:
-            curve.setData(x=x, y=y)
+        curve.setData(x=x, y=y)
         
         if pen:
             curve.setPen(pen)
