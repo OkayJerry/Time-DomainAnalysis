@@ -204,7 +204,7 @@ class PVItem(QWidget):
         font_metrics = QFontMetrics(self.value_display.font())
         text_width = font_metrics.horizontalAdvance(sample_text)
         
-        self.value_display.setGeometry(self.line_edit.width() - text_width, PV_VALUE_LABEL_GEOMETRY[1], 
+        self.value_display.setGeometry(self.line_edit.width() - text_width + 10, PV_VALUE_LABEL_GEOMETRY[1], 
                                        text_width, PV_VALUE_LABEL_GEOMETRY[2])
         self.value_display.setText(sample_text)
         
